@@ -1,15 +1,64 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "sqlite" // or postgresql, sqlite
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+model Student {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  age       Int
+  classId   Int?
+  class     Class?    @relation(fields: [classId], references: [id])
+  attendance Attendance[]
+  payments   Payment[]
+}
+
+model Teacher {
+  id       Int     @id @default(autoincrement())
+  name     String
+  subject  String
+  classes  Class[]
+}
+
+model Class {
+  id       Int       @id @default(autoincrement())
+  name     String
+  teacher  Teacher?  @relation(fields: [teacherId], references: [id])
+  teacherId Int?
+  students Student[]
+  courses  Course[]
+}
+
+model Course {
+  id        Int     @id @default(autoincrement())
+  title     String
+  classId   Int
+  class     Class   @relation(fields: [classId], references: [id])
+}
+
+model Attendance {
+  id        Int     @id @default(autoincrement())
+  date      DateTime @default(now())
+  status    String
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+}
+
+model Payment {
+  id        Int     @id @default(autoincrement())
+  amount    Float
+  date      DateTime @default(now())
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+}
+
+model Staff {
+  id      Int    @id @default(autoincrement())
+  name    String
+  role    String
 }

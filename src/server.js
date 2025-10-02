@@ -1,12 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
-import studentRoutes from "./routes/studentRoutes.js";
-import teacherRoutes from "./routes/teacherRoutes.js";
-import classRoutes from "./routes/classRoutes.js";
-import courseRoutes from "./routes/courseRoutes.js";
-import attendanceRoutes from "./routes/attendanceRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
-import staffRoutes from "./routes/staffRoutes.js";
+import cors from "cors";
+import studentRoutes from "./routes/student.routes.js";
+import teacherRoutes from "./routes/teacher.routes.js";
+import classRoutes from "./routes/class.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import attendanceRoutes from "./routes/attendance.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import staffRoutes from "./routes/staff.routes.js";
 
 dotenv.config();
 
@@ -15,6 +16,14 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'], // allow preflight
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+}));
+
 
 // Routes
 app.use("/api/students", studentRoutes);

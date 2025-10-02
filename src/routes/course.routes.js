@@ -1,7 +1,8 @@
-import express from "express";
+import { Router } from "express";
 import { courseController } from "../controllers/course.controller.js";
 
-const router = express.Router();
+
+const router = Router();
 
 router.get("/", courseController.getAll);
 router.get("/:id", courseController.getById);
