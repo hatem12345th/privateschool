@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/axios"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ClassesPage() {
-  const [classes, setClasses] = useState([])
+  const [classes, setClasses] = useState<any[]>([])
+    const [teachers, setTeachers] = useState<any[]>([])
 
   const [view, setView] = useState<"table" | "cards">("table")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -28,47 +30,44 @@ export default function ClassesPage() {
   const [formData, setFormData] = useState({
     name: "",
     teacher: "",
-    students: "",
   })
 
   const filteredClasses = classes.filter(
     (classItem) =>
-      classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      classItem.teacher.toLowerCase().includes(searchQuery.toLowerCase()),
+      classItem.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      classItem.teacher?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const totalStudents = classes.reduce((sum, c) => sum + c.students, 0)
+  const totalStudents =  classes.reduce((total, classItem) => total + classItem.students.length, 0) 
   const avgClassSize = Math.round(totalStudents / classes.length)
   const largestClass = Math.max(...classes.map((c) => c.students))
 
   const handleAdd = async ()  =>  { 
     const newClass = {
-      id: classes.length + 1,
       name: formData.name,
-      teacher: formData.teacher,
-      students: Number.parseInt(formData.students),
+      teacherId:  Number.parseInt(formData.teacher),
     }
     await api.post('/classes', newClass);
     fetchClasses();
    
     setIsAddDialogOpen(false)
-    setFormData({ name: "", teacher: "", students: "" })
+    setFormData({ name: "", teacher: ""})
   }
 
-  const handleEdit = () => {
-    setClasses(
-      classes.map((c) =>
-        c.id === selectedClass.id ? { ...c, ...formData, students: Number.parseInt(formData.students) } : c,
-      ),
-    )
+  const handleEdit = async () => {
+    const updatedClass = {
+      name: formData.name,
+      teacherId:  Number.parseInt(formData.teacher),
+    }   
+    await api.put(`/classes/${selectedClass.id}`, updatedClass);
     fetchClasses();
     setIsEditDialogOpen(false)
     setSelectedClass(null)
-    setFormData({ name: "", teacher: "", students: "" })
+    setFormData({ name: "", teacher: "" })
   }
 
   const handleDelete = async () => {
-    await api.delete(`/students/${selectedClass.id}`);
+    await api.delete(`/classes/${selectedClass.id}`);
     fetchClasses();
     setIsDeleteDialogOpen(false)
     setSelectedClass(null)
@@ -78,8 +77,7 @@ export default function ClassesPage() {
     setSelectedClass(classItem)
     setFormData({
       name: classItem.name,
-      teacher: classItem.teacher,
-      students: classItem.students.toString(),
+      teacher: classItem.teacherId?.toString() || "",
     })
     setIsEditDialogOpen(true)
   }
@@ -91,7 +89,7 @@ export default function ClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const data  = await api.get('/students');
+      const data  = await api.get('/classes');
       setClasses(data.data);         
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -104,6 +102,23 @@ export default function ClassesPage() {
     fetchClasses()
    },[])
 
+     const fetchTeachers = async () => {
+       try {
+   
+         const data  = await api.get('/teachers');
+         setTeachers (data.data) ;
+   
+       } catch (error) {
+         console.error("Error fetching teachers:", error);
+       }
+     
+     }
+   
+      useEffect(() => {
+      
+       fetchTeachers()
+      },[])
+   
 
 
 
@@ -245,8 +260,8 @@ export default function ClassesPage() {
                           {classItem.name}
                         </span>
                       </td>
-                      <td className="p-4 font-medium">{classItem.teacher}</td>
-                      <td className="p-4">{classItem.students}</td>
+                      <td className="p-4 font-medium">{classItem.teacher?.name ?? ""}</td>
+                      <td className="p-4">{classItem.students.length}</td>
                       <td className="p-4">
                         <div className="flex gap-2">
                           <Button
@@ -285,7 +300,7 @@ export default function ClassesPage() {
                           <GraduationCap className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-balance">{classItem.name}</h3>
+                          <h3 className="text-lg font-semibold text-balance">{classItem?.name}</h3>
                           <span className="text-xs text-muted-foreground">Class ID: {classItem.id}</span>
                         </div>
                       </div>
@@ -294,11 +309,11 @@ export default function ClassesPage() {
                       <div className="space-y-2 border-t pt-3">
                         <div className="flex items-center gap-2 text-sm">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{classItem.teacher}</span>
+                          <span className="font-medium">{classItem.teacher.name}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">{classItem.students} Students</span>
+                          <span className="text-muted-foreground">{classItem.students.length} Students</span>
                         </div>
                       </div>
 
@@ -350,24 +365,23 @@ export default function ClassesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="teacher">Teacher</Label>
-              <Input
-                id="teacher"
-                value={formData.teacher}
-                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-                placeholder="Enter teacher name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="students">Number of Students</Label>
-              <Input
-                id="students"
-                type="number"
-                value={formData.students}
-                onChange={(e) => setFormData({ ...formData, students: e.target.value })}
-                placeholder="Enter number of students"
-              />
-            </div>
+  <Label htmlFor="teacher">Teacher</Label>
+  <Select
+    value={formData.teacher}
+    onValueChange={(value) => setFormData({ ...formData, teacher: value })}
+  >
+    <SelectTrigger id="teacher">
+      <SelectValue placeholder="Select a teacher" />
+    </SelectTrigger>
+    <SelectContent>
+      {teachers.map((teacher: any) => (
+        <SelectItem key={teacher.id} value={teacher.id.toString()}> {teacher.name} </SelectItem>
+      ))
+      }
+     
+    </SelectContent>
+  </Select>
+</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -395,22 +409,23 @@ export default function ClassesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-teacher">Teacher</Label>
-              <Input
-                id="edit-teacher"
-                value={formData.teacher}
-                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-students">Number of Students</Label>
-              <Input
-                id="edit-students"
-                type="number"
-                value={formData.students}
-                onChange={(e) => setFormData({ ...formData, students: e.target.value })}
-              />
-            </div>
+  <Label htmlFor="teacher">Teacher</Label>
+  <Select
+    value={formData.teacher}
+    onValueChange={(value) => setFormData({ ...formData, teacher: value })}
+  >
+    <SelectTrigger id="teacher">
+      <SelectValue placeholder="Select a teacher" />
+    </SelectTrigger>
+    <SelectContent>
+      {teachers.map((teacher: any) => (
+        <SelectItem key={teacher.id} value={teacher.id.toString()}> {teacher.name} </SelectItem>
+      ))
+      }
+     
+    </SelectContent>
+  </Select>
+</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>

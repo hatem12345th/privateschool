@@ -37,6 +37,11 @@ export const classService = {
   },
 
   async remove(id) {
+    await prisma.student.updateMany({
+      where: { classId: Number(id) },
+      data: { classId: null },
+    });
+
     return await prisma.class.delete({
       where: { id: Number(id) },
     });

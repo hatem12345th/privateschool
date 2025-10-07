@@ -40,6 +40,7 @@ export const classController = {
 
   async remove(req, res) {
     try {
+      
       await classService.remove(req.params.id);
       res.json({ message: "Class deleted" });
     } catch (error) {
