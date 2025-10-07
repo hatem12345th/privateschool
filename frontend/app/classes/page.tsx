@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,14 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { api } from "@/lib/axios"
 
 export default function ClassesPage() {
-  const [classes, setClasses] = useState([
-    { id: 1, name: "Grade 9A", teacher: "Ms. Emily Chen", students: 25 },
-    { id: 2, name: "Grade 10A", teacher: "Dr. Sarah Miller", students: 28 },
-    { id: 3, name: "Grade 11B", teacher: "Prof. John Davis", students: 22 },
-    { id: 4, name: "Grade 12A", teacher: "Mr. Michael Brown", students: 20 },
-  ])
+  const [classes, setClasses] = useState([])
 
   const [view, setView] = useState<"table" | "cards">("table")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -45,14 +41,16 @@ export default function ClassesPage() {
   const avgClassSize = Math.round(totalStudents / classes.length)
   const largestClass = Math.max(...classes.map((c) => c.students))
 
-  const handleAdd = () => {
+  const handleAdd = async ()  =>  { 
     const newClass = {
       id: classes.length + 1,
       name: formData.name,
       teacher: formData.teacher,
       students: Number.parseInt(formData.students),
     }
-    setClasses([...classes, newClass])
+    await api.post('/classes', newClass);
+    fetchClasses();
+   
     setIsAddDialogOpen(false)
     setFormData({ name: "", teacher: "", students: "" })
   }
@@ -63,13 +61,15 @@ export default function ClassesPage() {
         c.id === selectedClass.id ? { ...c, ...formData, students: Number.parseInt(formData.students) } : c,
       ),
     )
+    fetchClasses();
     setIsEditDialogOpen(false)
     setSelectedClass(null)
     setFormData({ name: "", teacher: "", students: "" })
   }
 
-  const handleDelete = () => {
-    setClasses(classes.filter((c) => c.id !== selectedClass.id))
+  const handleDelete = async () => {
+    await api.delete(`/students/${selectedClass.id}`);
+    fetchClasses();
     setIsDeleteDialogOpen(false)
     setSelectedClass(null)
   }
@@ -89,6 +89,24 @@ export default function ClassesPage() {
     setIsDeleteDialogOpen(true)
   }
 
+  const fetchClasses = async () => {
+    try {
+      const data  = await api.get('/students');
+      setClasses(data.data);         
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  
+  }
+
+   useEffect(() => {
+   
+    fetchClasses()
+   },[])
+
+
+
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -98,7 +116,7 @@ export default function ClassesPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/15 to-primary/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -112,7 +130,7 @@ export default function ClassesPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/15 to-success/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -126,7 +144,7 @@ export default function ClassesPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/15 to-warning/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -140,7 +158,7 @@ export default function ClassesPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/15 to-info/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">

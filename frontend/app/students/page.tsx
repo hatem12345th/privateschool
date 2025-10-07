@@ -151,7 +151,7 @@ export default function StudentsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/15 to-primary/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -165,7 +165,7 @@ export default function StudentsPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/15 to-success/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -179,7 +179,7 @@ export default function StudentsPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/15 to-warning/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -193,7 +193,7 @@ export default function StudentsPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/15 to-info/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">

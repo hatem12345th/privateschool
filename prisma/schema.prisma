@@ -23,6 +23,8 @@ model Teacher {
   name     String
   subject  String
   classes  Class[]
+  email String @unique
+  phone    String?
 }
 
 model Class {

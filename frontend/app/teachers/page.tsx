@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,13 +26,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { api } from "@/lib/axios"
+
 
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState([
-    { id: 1, name: "Dr. Sarah Miller", subject: "Mathematics", email: "sarah@school.com", phone: "555-0101" },
-    { id: 2, name: "Prof. John Davis", subject: "Physics", email: "john@school.com", phone: "555-0102" },
-    { id: 3, name: "Ms. Emily Chen", subject: "English", email: "emily@school.com", phone: "555-0103" },
-    { id: 4, name: "Mr. Michael Brown", subject: "History", email: "michael@school.com", phone: "555-0104" },
+  
   ])
 
   const [view, setView] = useState<"table" | "cards">("table")
@@ -55,31 +54,48 @@ export default function TeachersPage() {
       teacher.email.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleAdd = () => {
+  const handleAdd = async() => {
     const newTeacher = {
-      id: teachers.length + 1,
+      
       name: formData.name,
       subject: formData.subject,
       email: formData.email,
       phone: formData.phone,
     }
-    setTeachers([...teachers, newTeacher])
+    await api.post('/teachers', newTeacher);
+    fetchTeachers();
     setIsAddDialogOpen(false)
     setFormData({ name: "", subject: "", email: "", phone: "" })
   }
 
-  const handleEdit = () => {
-    setTeachers(teachers.map((t) => (t.id === selectedTeacher.id ? { ...t, ...formData } : t)))
-    setIsEditDialogOpen(false)
-    setSelectedTeacher(null)
-    setFormData({ name: "", subject: "", email: "", phone: "" })
-  }
 
-  const handleDelete = () => {
-    setTeachers(teachers.filter((t) => t.id !== selectedTeacher.id))
-    setIsDeleteDialogOpen(false)
-    setSelectedTeacher(null)
-  }
+  
+  const handleEdit = async () => {
+    if (!selectedTeacher) return;
+  
+    await api.put(`/teachers/${selectedTeacher.id}`, {
+      name: formData.name,
+      subject: formData.subject,
+      email: formData.email,
+      phone: formData.phone,
+    });
+  
+    fetchTeachers();   // reload data from DB
+    setIsEditDialogOpen(false);
+    setSelectedTeacher(null);
+    setFormData({ name: "", subject: "", email: "", phone: "" });
+  };
+  
+  // ✅ DELETE teacher (modified)
+  const handleDelete = async () => {
+    if (!selectedTeacher) return;
+  
+    await api.delete(`/teachers/${selectedTeacher.id}`);
+  
+    fetchTeachers();   // reload data from DB
+    setIsDeleteDialogOpen(false);
+    setSelectedTeacher(null);
+  };
 
   const openEditDialog = (teacher: any) => {
     setSelectedTeacher(teacher)
@@ -105,6 +121,33 @@ export default function TeachersPage() {
       .toUpperCase()
   }
 
+ 
+
+
+
+
+
+
+
+  const fetchTeachers = async () => {
+    try {
+
+      const data  = await api.get('/teachers');
+      setTeachers (data.data) ;
+
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  
+  }
+
+   useEffect(() => {
+   
+    fetchTeachers()
+   },[])
+
+
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -114,7 +157,7 @@ export default function TeachersPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/15 to-primary/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -128,7 +171,7 @@ export default function TeachersPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-success/15 to-success/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -142,7 +185,7 @@ export default function TeachersPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-warning/15 to-warning/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -158,7 +201,7 @@ export default function TeachersPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/5 to-transparent transition-all hover:shadow-lg">
+        <Card className="group relative overflow-hidden border bg-gradient-to-br from-info/15 to-info/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
