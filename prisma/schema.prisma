@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite" // or postgresql, sqlite
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -8,59 +8,63 @@ generator client {
 }
 
 model Student {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  age       Int
-  classId   Int?
-  class     Class?    @relation(fields: [classId], references: [id])
+  id         Int          @id @default(autoincrement())
+  name       String
+  email      String       @unique
+  age        Int
+  classId    Int?
+  class      Class?       @relation(fields: [classId], references: [id])
   attendance Attendance[]
   payments   Payment[]
 }
 
 model Teacher {
-  id       Int     @id @default(autoincrement())
-  name     String
-  subject  String
-  classes  Class[]
-  email String @unique
-  phone    String?
+  id      Int      @id @default(autoincrement())
+  name    String
+  subject String
+  email   String   @unique
+  phone   String?
+  classes Class[]
+  courses Course[] // 👈 added this relation
 }
 
 model Class {
-  id       Int       @id @default(autoincrement())
-  name     String
-  teacher  Teacher?  @relation(fields: [teacherId], references: [id])
+  id        Int       @id @default(autoincrement())
+  name      String
   teacherId Int?
-  students Student[]
-  courses  Course[]
+  teacher   Teacher?  @relation(fields: [teacherId], references: [id])
+  students  Student[]
+  courses   Course[] // 👈 relation to Course (opposite side defined below)
 }
 
 model Course {
   id        Int     @id @default(autoincrement())
-  title     String
-  classId   Int
-  class     Class   @relation(fields: [classId], references: [id])
+  name      String
+  credits   Int?
+  teacherId Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  classId   Int? // 👈 added this
+  class     Class?  @relation(fields: [classId], references: [id]) // 👈 opposite side for Class
 }
 
 model Attendance {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   date      DateTime @default(now())
   status    String
   studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
 }
 
 model Payment {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   amount    Float
   date      DateTime @default(now())
   studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
 }
 
 model Staff {
-  id      Int    @id @default(autoincrement())
-  name    String
-  role    String
+  id   Int    @id @default(autoincrement())
+  name String
+  role String
 }

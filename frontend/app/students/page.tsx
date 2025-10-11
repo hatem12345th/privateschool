@@ -126,20 +126,20 @@ export default function StudentsPage() {
       .join("")
       .toUpperCase()
   }
-  const fetchStudents = async () => {
-    try {
-      const data  = await api.get('/students');
-      setStudents(data.data);         
-    } catch (error) {
-      console.error("Error fetching students:", error);
+    const fetchStudents = async () => {
+      try {
+        const data  = await api.get('/students');
+        setStudents(data.data);         
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      }
+    
     }
-  
-  }
 
-   useEffect(() => {
-   
-    fetchStudents()
-   },[])
+    useEffect(() => {
+    
+      fetchStudents()
+    },[])
 
 
   return (

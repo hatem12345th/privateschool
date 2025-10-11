@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { api } from "@/lib/axios"
 
 interface Course {
   id: number
@@ -29,12 +30,8 @@ export default function CoursesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
-  const [courses, setCourses] = useState<Course[]>([
-    { id: 1, name: "Mathematics", teacher: "Dr. Smith", credits: "6" },
-    { id: 2, name: "Physics", teacher: "Prof. Johnson", credits: "5" },
-    { id: 3, name: "Chemistry", teacher: "Dr. Williams", credits: "4" },
-    { id: 4, name: "Biology", teacher: "Prof. Brown", credits: "5" },
-  ])
+  const [courses, setCourses] = useState<Course[]>([])
+  const [teachers, setTeachers] = useState<any[]>([])
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,10 +40,6 @@ export default function CoursesPage() {
   })
 
   // Sample teachers list
-  const teachers = [
-    "Dr. Smith", "Prof. Johnson", "Dr. Williams", "Prof. Brown",
-    "Dr. Davis", "Prof. Miller", "Dr. Wilson", "Prof. Taylor"
-  ]
 
   const filteredCourses = courses.filter(course =>
     course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -61,14 +54,16 @@ export default function CoursesPage() {
       .toUpperCase()
   }
 
-  const handleAddCourse = () => {
-    const newCourse: Course = {
-      id: courses.length + 1,
+  const handleAddCourse = async () => {
+    const selectedTeacher = teachers.find(t => t.id === parseInt(formData.teacher));
+    const newCourse = {
       name: formData.name,
-      teacher: formData.teacher,
-      credits: formData.credits
-    }
-    setCourses([...courses, newCourse])
+      credits: formData.credits,
+      teacherId: selectedTeacher?.id || null,
+    
+    };
+    await api.post('/courses', newCourse);
+    fetchCourses();
     setIsAddDialogOpen(false)
     resetForm()
   }
@@ -113,6 +108,43 @@ export default function CoursesPage() {
       credits: ""
     })
   }
+
+
+  const fetchCourses = async () => {
+    try {
+      const data  = await api.get('/courses');
+      setCourses(data.data);         
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  
+  }
+
+   useEffect(() => {
+   
+    fetchCourses()
+   },[])
+
+     const fetchTeachers = async () => {
+       try {
+   
+         const data  = await api.get('/teachers');
+         setTeachers (data.data) ;
+   
+       } catch (error) {
+         console.error("Error fetching teachers:", error);
+       }
+     
+     }
+   
+      useEffect(() => {
+      
+       fetchTeachers()
+      },[])
+   
+
+
+
 
   return (
     <div className="space-y-6">
@@ -372,8 +404,8 @@ export default function CoursesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {teachers.map((teacher) => (
-                    <SelectItem key={teacher} value={teacher}>
-                      {teacher}
+                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                      {teacher.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
