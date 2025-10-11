@@ -4,7 +4,12 @@ const prisma = new PrismaClient();
 export const courseService = {
   async getAll() {
     return await prisma.course.findMany({
-      include: { class: true },
+      select:{
+        id:true,
+        teacherId:true,
+        credits:true,
+        classId:true
+      }
     });
   },
 
@@ -17,7 +22,12 @@ export const courseService = {
 
   async create(data) {
     return await prisma.course.create({
-      data,
+      data:{
+        name:data.name,
+        credits:data.credits,
+        teacherId:data.teacherId,
+        classId:data.c
+      },
     });
   },
 
