@@ -40,12 +40,11 @@ export default function CoursesPage() {
   })
 
   // Sample teachers list
-
   const filteredCourses = courses.filter(course =>
-    course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.teacher.toLowerCase().includes(searchQuery.toLowerCase())
+    (course.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (course.teacher?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   )
-
+  
   const getInitials = (name: string) => {
     return name
       .split(" ")

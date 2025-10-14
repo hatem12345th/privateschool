@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { api } from "@/lib/axios"
 
 interface Payment {
   id: number
@@ -30,12 +31,7 @@ export default function PaymentsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
-  const [payments, setPayments] = useState<Payment[]>([
-    { id: 1, student: "Alice Johnson", amount: "$1200.00", date: "2024-01-10", status: "Paid" },
-    { id: 2, student: "Bob Smith", amount: "$1200.00", date: "2024-01-12", status: "Paid" },
-    { id: 3, student: "Charlie Brown", amount: "$1200.00", date: "2024-01-15", status: "Pending" },
-    { id: 4, student: "Diana Prince", amount: "$800.00", date: "2024-01-08", status: "Paid" },
-  ])
+  const [payments, setPayments] = useState<Payment[]>([])
 
   const [formData, setFormData] = useState({
     student: "",
@@ -49,14 +45,13 @@ export default function PaymentsPage() {
     "Alice Johnson", "Bob Smith", "Charlie Brown", "Diana Prince", 
     "Eva Wilson", "Frank Miller", "Grace Davis", "Henry Taylor"
   ]
-
   const filteredPayments = payments.filter(payment =>
-    payment.student.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    payment.amount.includes(searchQuery) ||
-    payment.date.includes(searchQuery) ||
-    payment.status.toLowerCase().includes(searchQuery.toLowerCase())
+    (payment.student?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (payment.amount?.toString() || "").includes(searchQuery) ||
+    (payment.date?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (payment.status?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   )
-
+  
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -65,7 +60,7 @@ export default function PaymentsPage() {
       .toUpperCase()
   }
 
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     const newPayment: Payment = {
       id: payments.length + 1,
       student: formData.student,
@@ -73,12 +68,13 @@ export default function PaymentsPage() {
       date: formData.date,
       status: formData.status
     }
-    setPayments([...payments, newPayment])
+    await api.post("/payment",newPayment)
+    fetchPayment()
     setIsAddDialogOpen(false)
     resetForm()
   }
 
-  const handleEditPayment = () => {
+  const handleEditPayment = async () => {
     if (selectedPayment) {
       const updatedPayments = payments.map(payment =>
         payment.id === selectedPayment.id
@@ -91,16 +87,27 @@ export default function PaymentsPage() {
             }
           : payment
       )
-      setPayments(updatedPayments)
+      await api.put(`"/payments/"${selectedPayment.id}`)
+      fetchPayment()
       setIsEditDialogOpen(false)
       setSelectedPayment(null)
       resetForm()
     }
   }
 
-  const handleDeletePayment = (id: number) => {
+  const handleDeletePayment = async (id: number) => {
+    
     setPayments(payments.filter(payment => payment.id !== id))
+  
+    try {
+      await api.delete(`/payments/${id}`)
+    } catch (error) {
+      console.error("Error deleting payment:", error)
+      
+      await fetchPayment()
+    }
   }
+  
 
   const openEditDialog = (payment: Payment) => {
     setSelectedPayment(payment)
@@ -121,6 +128,24 @@ export default function PaymentsPage() {
       status: "Pending"
     })
   }
+
+
+  const fetchPayment= async () => {
+    try {
+      const data  = await api.get('/students');
+      setPayments(data.data);         
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  
+  }
+
+  useEffect(() => {
+  
+    fetchPayment()
+  },[])
+
+
 
   return (
     <div className="space-y-6">

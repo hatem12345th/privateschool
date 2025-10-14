@@ -25,7 +25,7 @@ export default function DashboardPage() {
         <p className="text-lg text-muted-foreground">Welcome back! Here's what's happening at your school today.</p>
       </div>
 
-      {/* Stats Grid */}
+  
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="group relative overflow-hidden border bg-gradient-to-br from-primary/15 to-primary/5 transition-all hover:shadow-lg">
           <CardContent className="p-6">

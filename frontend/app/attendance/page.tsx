@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { api } from "@/lib/axios"
 
 interface AttendanceRecord {
   id: number
@@ -29,12 +30,7 @@ export default function AttendancePage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null)
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([
-    { id: 1, student: "Alice Johnson", date: "2024-01-15", status: "Present" },
-    { id: 2, student: "Bob Smith", date: "2024-01-15", status: "Present" },
-    { id: 3, student: "Charlie Brown", date: "2024-01-15", status: "Absent" },
-    { id: 4, student: "Diana Prince", date: "2024-01-15", status: "Present" },
-  ])
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
 
   const [formData, setFormData] = useState({
     student: "",
@@ -62,19 +58,20 @@ export default function AttendancePage() {
       .toUpperCase()
   }
 
-  const handleAddAttendance = () => {
+  const handleAddAttendance = async () => {
     const newRecord: AttendanceRecord = {
       id: attendance.length + 1,
       student: formData.student,
       date: formData.date,
       status: formData.status
     }
-    setAttendance([...attendance, newRecord])
+    await api.post('/attendance', newRecord);
+    fetchAttendance();
     setIsAddDialogOpen(false)
-    resetForm()
+    resetForm() 
   }
 
-  const handleEditAttendance = () => {
+  const handleEditAttendance = async  () => {
     if (selectedRecord) {
       const updatedAttendance = attendance.map(record =>
         record.id === selectedRecord.id
@@ -86,17 +83,27 @@ export default function AttendancePage() {
             }
           : record
       )
-      setAttendance(updatedAttendance)
+      await api.put(`/attendance/${selectedRecord.id}`, updatedAttendance)
+      fetchAttendance() 
       setIsEditDialogOpen(false)
       setSelectedRecord(null)
       resetForm()
     }
   }
 
-  const handleDeleteAttendance = (id: number) => {
-    setAttendance(attendance.filter(record => record.id !== id))
+  const handleDeleteAttendance = async (id: number) => {
+    try {
+      
+      await api.delete(`/attendance/${id}`)
+  
+   
+      await fetchAttendance()
+  
+    } catch (error) {
+      console.error("Error deleting attendance:", error)
+    }
   }
-
+  
   const openEditDialog = (record: AttendanceRecord) => {
     setSelectedRecord(record)
     setFormData({
@@ -114,6 +121,21 @@ export default function AttendancePage() {
       status: "Present"
     })
   }
+
+  const fetchAttendance = async () => {
+    try {
+      const data  = await api.get('/attendance');
+      setAttendance(data.data);         
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  
+  }
+
+  useEffect(() => {
+  
+    fetchAttendance()
+  },[])
 
   return (
     <div className="space-y-6">
